@@ -25,7 +25,9 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@radix-ui/react-collapsible": "^1.1.10",
     "autoprefixer": "^10.4.21",
+    "clsx": "^2.1.1",
     "electron-router-dom": "^1.0.5",
+    "phosphor-react": "^1.4.1",
     "postcss": "^8.5.3",
     "react-router-dom": "^7.6.0",
     "vite-plugin-static-copy": "^3.0.0"

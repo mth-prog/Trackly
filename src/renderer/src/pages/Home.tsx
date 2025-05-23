@@ -7,7 +7,7 @@ interface HomeProps {
 const Home: FunctionComponent<HomeProps> = () => {
     return ( 
         <>
-            <h1>Home</h1>
+            <h1></h1>
         </> 
     );
 }
