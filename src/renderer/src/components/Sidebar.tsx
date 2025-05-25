@@ -2,6 +2,7 @@ import { FunctionComponent } from "react";
 import * as Collapsible from "@radix-ui/react-collapsible"
 import { ArrowBendDoubleUpLeft } from "phosphor-react";
 import clsx from "clsx";
+import LinkContent from "./Link";
 
 interface SidebarProps {
     
@@ -20,7 +21,7 @@ const Sidebar: FunctionComponent<SidebarProps> = () => {
                     'top-6': !isMacOS
                 }
             )}> 
-            <ArrowBendDoubleUpLeft className='h-7 w-7'/>
+                <ArrowBendDoubleUpLeft className='h-7 w-7'/>
             </Collapsible.Trigger>
             <div className={clsx(
                 'flex-1 flex flex-col h-full gap-8 w-[220px] transition-opacity duration-200', 
@@ -29,8 +30,16 @@ const Sidebar: FunctionComponent<SidebarProps> = () => {
                     }
                 )}
             >
-                <nav>
-                    <button className="text-white">ta porra</button>
+                <nav className=" flex-2 mx-2 flex-col gap-8 text-slate-100">
+                    <div className="flex flex-col gap-2">
+                        <div className="text-white font-semibold uppercase mb-2 ml-2">
+                            Menu
+                        </div>
+                    </div>
+                    <section className="flex flex-col gap-px">
+                        <LinkContent to="/create"> Habitos </LinkContent>
+                        <LinkContent to="/dashboard"> Dashboard </LinkContent>
+                    </section>
                 </nav>
             </div>
         </Collapsible.Content> 

@@ -14,7 +14,7 @@ const Header: FunctionComponent<HeaderProps> = ({isSideBarOpen}) => {
         <div
             id='header'
             className={clsx(
-                'flex items-center gap-4 leading-tight relative border-b border-slate-600 transition-all duration-200 py-[1.25rem] px-6',
+                'flex items-center gap-4 leading-tight relative border-b border-slate-600 transition-all duration-200 py-[1.125rem] px-6',
                 {
                     'pl-24': isSideBarOpen && isMacOS,
                     'w-screen': !isSideBarOpen,
