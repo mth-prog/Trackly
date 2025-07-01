@@ -11,8 +11,15 @@ interface LayoutProps {
     
 }
 
+async function habits() {
+    const nteste = await window.api.getHabits()
+    return nteste
+}
+
 const Layout: FunctionComponent<LayoutProps> = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+    console.log(habits());
+    
     return (
         
         <Collapsible.Root

@@ -6,11 +6,14 @@ import { createTables } from './schemas';
 
 export const dbPath = path.join(app.getPath('userData'), 'database.db');
 
-console.log(dbPath);
-
+export function checkDatabase():Boolean {
+  const check =!fs.existsSync(dbPath);
+  
+  return check
+}; 
 
 export function setupDatabase(): Database.Database {
-  const firstRun = !fs.existsSync(dbPath);
+  const firstRun = checkDatabase()
   const db = new Database(dbPath);
 
   if (firstRun) {

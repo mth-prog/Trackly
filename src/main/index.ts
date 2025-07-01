@@ -3,6 +3,7 @@ import path, { join } from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { createFileRoute, createURLRoute } from 'electron-router-dom'
 import { setupDatabase } from './database/init';
+import './ipc/ipc';
 
 function createWindow(): void {
   // Create the browser window.
