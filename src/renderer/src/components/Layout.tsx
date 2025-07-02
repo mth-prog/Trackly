@@ -7,18 +7,10 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 
 
-interface LayoutProps {
-    
-}
-
-async function habits() {
-    const nteste = await window.api.getHabits()
-    return nteste
-}
+interface LayoutProps {}
 
 const Layout: FunctionComponent<LayoutProps> = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-    console.log(habits());
     
     return (
         
