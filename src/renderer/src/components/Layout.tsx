@@ -7,12 +7,11 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 
 
-interface LayoutProps {
-    
-}
+interface LayoutProps {}
 
 const Layout: FunctionComponent<LayoutProps> = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+    
     return (
         
         <Collapsible.Root
