@@ -12,8 +12,13 @@ export function checkDatabase():Boolean {
   return check
 }; 
 
+//TODO: Validar para criar um banco novo quando ele é deletado porque isso nao está funcionado. 
+
 export function setupDatabase(): Database.Database {
   const firstRun = checkDatabase()
+  // Garante que o diretório existe
+  fs.mkdirSync(path.dirname(dbPath), { recursive: true })
+
   const db = new Database(dbPath);
 
   if (firstRun) {

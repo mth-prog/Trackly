@@ -7,40 +7,44 @@ import { dbPath } from '../database/init'
 const db = new Database(dbPath, {fileMustExist: true})
 
 // Criar um hábito
-ipcMain.handle("criarHabito", (_,
-    nome:string, 
-    descricao = ''
-) => {
-    const stmt = db.prepare('INSERT INTO habito (nome, descricao) VALUES (?, ?)');
-    const info = stmt.run(nome, descricao);
-    return info.lastInsertRowid;
-})
+ipcMain.handle('criarHabito', async (event, nome: string, descricao: string = '') => {
+  console.log('[MAIN] Recebido:', nome, descricao);
 
-// Listar hábitos (não deletados)
-ipcMain.handle("listarHabitos",  () =>{
+  if (!nome) {
+    throw new Error("O campo 'nome' é obrigatório.");
+  }
+
+  const stmt = db.prepare('INSERT INTO habito (nome, descricao) VALUES (?, ?)');
+  const info = stmt.run(nome, descricao);
+  return Promise.resolve(info.lastInsertRowid);
+});
+
+
+// Listar hábitos (não deletados) 
+// TODO: colocar o filtro na listagem 
+ipcMain.handle("listarHabitos",  () => {
     return db.prepare('SELECT * FROM habito WHERE is_deleted = false').all();
 })
 
-// Buscar um hábito por ID
-ipcMain.handle(" buscarHabito", (_, id:number) => {
-    return db.prepare('SELECT * FROM habito WHERE id = ? AND is_deleted = false').get(id);
+// Buscar um hábito por nome
+ipcMain.handle("buscarHabito", (_, nome: string) => {
+    return db.prepare('SELECT * FROM habito WHERE nome = ? AND is_deleted = false').get(nome);
 })
 
 // Atualizar um hábito
 ipcMain.handle("atualizarHabito", (_,
-    id, 
-    nome:string, 
-    descricao:string
+    nome:String, 
+    descricao:String
 ) => {
     const stmt = db.prepare('UPDATE habito SET nome = ?, descricao = ? WHERE id = ? AND is_deleted = false');
-    return stmt.run(nome, descricao, id);
+    return stmt.run(nome, descricao);
 })
 
 // Marcar hábito como deletado (soft delete)
 ipcMain.handle("deletarHabito", (_, 
-    id
+    nome: String
 ) => {
-    return db.prepare('UPDATE habito SET is_deleted = 1 WHERE id = ?').run(id)
+    return db.prepare('UPDATE habito SET is_deleted = 1 WHERE nome = ?').run(nome)
 })
 
 
