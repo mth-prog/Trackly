@@ -10,11 +10,44 @@ declare global {
 
 // Custom APIs for renderer
 const api = {
-  getHabits: () => {
-    return ipcRenderer.invoke('habits')
+  criarHabito: (nome: string, descricao = '') => {
+    return ipcRenderer.invoke('criarHabito', nome, descricao)
+  },
+
+  listarHabito: () => {
+    return Promise.resolve(ipcRenderer.invoke('listarHabitos'))
+  },
+
+  buscarHabito: (nome: string) => {
+    return ipcRenderer.invoke('buscarHabito', nome)
+  },
+
+  atualizarHabito: (nome: string, descricao: string) => {
+    return ipcRenderer.invoke('atualizarHabito', nome, descricao)
+  },
+
+  deletarHabito: (nome: string) => {
+    return ipcRenderer.invoke('deletarHabito', nome)
+  },
+
+
+  // Referente ao Diario. 
+  criarRegistro: (data: string, idHabito: number, isFeito = false) => {
+    return ipcRenderer.invoke('criarRegistro', data, idHabito, isFeito)
+  },
+
+  listarRegistros: () => {
+    return ipcRenderer.invoke('listarRegistros')
+  },
+
+  atualizarRegistro: (id: number, isFeito: boolean) => {
+    return ipcRenderer.invoke('atualizarRegistro', id, isFeito)
+  },
+
+  deletarRegistro: (id: number) => {
+    return ipcRenderer.invoke('deletarRegistro', id)
   }
 }
-
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
 // just add to the DOM global.
