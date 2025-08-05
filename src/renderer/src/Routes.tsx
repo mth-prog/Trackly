@@ -1,5 +1,4 @@
 import {Route, Router} from "electron-router-dom"
-Layout
 import CreateHabits from "./pages/CreateHabit"
 import Home from "./pages/Home"
 import Dashboard from "./pages/Dashboard"
