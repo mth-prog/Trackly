@@ -4,7 +4,7 @@ import { dbPath } from '../database/init'
 
 //chamada de banco de dados 
 
-const db = new Database(dbPath, {fileMustExist: true})
+const db = new Database(dbPath)
 
 // Criar um hábito
 ipcMain.handle('criarHabito', async (event, nome: string, descricao: string = '') => {
