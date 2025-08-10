@@ -8,19 +8,19 @@ import { addDays, formatDdMmAaaa, getMonthShortPt, getWeekStartSunday } from "..
 type HeatmapProps = {
   countsByDate: Record<string, number>
   className?: string
-  // optional props for customization
+  year?: number
   weeksBack?: number // default ~52
 }
 
-export function Heatmap({ countsByDate, className, weeksBack = 53 }: HeatmapProps) {
+export function Heatmap({ countsByDate, className, year }: HeatmapProps) {
   // Build all days from (start = weeksBack * 7 days ago, aligned to Sunday) to today
   const { weeks, monthLabels } = useMemo(() => {
-    const today = new Date()
-    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const approxStart = addDays(end, -weeksBack * 7 + 1) // include today column
-    const start = getWeekStartSunday(approxStart)
-
-    const totalDays = Math.floor((end.getTime() - start.getTime()) / (24 * 3600 * 1000)) + 1
+    const y = year ?? new Date().getFullYear()
+    const start = new Date(y, 0, 1)
+    const end = new Date(y, 11, 31)
+    // Alinhe ao domingo anterior ao primeiro dia do ano
+    const alignedStart = getWeekStartSunday(start)
+    const totalDays = Math.floor((end.getTime() - alignedStart.getTime()) / (24 * 3600 * 1000)) + 1
     const numWeeks = Math.ceil(totalDays / 7)
 
     const weeks: Date[][] = []
@@ -29,12 +29,10 @@ export function Heatmap({ countsByDate, className, weeksBack = 53 }: HeatmapProp
     for (let w = 0; w < numWeeks; w++) {
       const col: Date[] = []
       for (let d = 0; d < 7; d++) {
-        const day = addDays(start, w * 7 + d)
+        const day = addDays(alignedStart, w * 7 + d)
         col.push(day)
       }
-      // Add month label at first week where day-of-month is within first 7 days and month changes
       const firstDay = col[0]
-      // Show month label if it's the first week of a month boundary or near it
       if (firstDay.getDate() <= 7) {
         monthLabels.push({ index: w, label: getMonthShortPt(firstDay) })
       }
@@ -42,7 +40,7 @@ export function Heatmap({ countsByDate, className, weeksBack = 53 }: HeatmapProp
     }
 
     return { weeks, monthLabels }
-  }, [countsByDate, weeksBack])
+  }, [countsByDate, year])
 
   const maxCount = useMemo(() => {
     let max = 0

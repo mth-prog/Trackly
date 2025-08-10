@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react"
+import { Heatmap } from "./heatmap"
 
 type Habito = {
   id: number
@@ -36,11 +37,12 @@ function parseFromInputDate(val: string): Date | null {
   return new Date(Number(y), Number(m) - 1, Number(d))
 }
 
-export default function HabitsDashboard() {
+function HabitsDashboard(): React.JSX.Element {
   const [habitos, setHabitos] = useState<Habito[]>([])
   const [registros, setRegistros] = useState<Registro[]>([])
   const [selecionados, setSelecionados] = useState<SelectionMap>({})
   const [dataDdMmAaaa, setDataDdMmAaaa] = useState<string>(formatDdMmAaaa(new Date()))
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [toastType, setToastType] = useState<"success" | "error">("success")
 
@@ -110,6 +112,23 @@ export default function HabitsDashboard() {
     return obj
   }, [registros])
 
+    const anosDisponiveis = useMemo(() => {
+    const anos = new Set<number>()
+    registros.forEach(r => {
+      const [d, m, y] = r.data.split("/")
+      anos.add(Number(y))
+    })
+    return Array.from(anos).sort((a, b) => b - a)
+  }, [registros])
+
+    const countsByDateAno = useMemo(() => {
+      const obj: Record<string, number> = {}
+      Object.entries(countsByDate).forEach(([k, v]) => {
+        if (k.endsWith(`/${selectedYear}`)) obj[k] = v
+      })
+      return obj
+    }, [countsByDate, selectedYear])
+
   // Toast simples
   function Toast() {
     if (!toastMsg) return null
@@ -121,38 +140,6 @@ export default function HabitsDashboard() {
         onClick={() => setToastMsg(null)}
       >
         {toastMsg}
-      </div>
-    )
-  }
-
-  // Heatmap simples (placeholder)
-  function Heatmap({ countsByDate }: { countsByDate: Record<string, number> }) {
-    // Exibe os últimos 30 dias como exemplo
-    const days: { date: string; count: number }[] = []
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date()
-      d.setDate(d.getDate() - i)
-      const key = formatDdMmAaaa(d)
-      days.push({ date: key, count: countsByDate[key] ?? 0 })
-    }
-    return (
-      <div className="flex gap-1 mt-2">
-        {days.map((day) => (
-          <div
-            key={day.date}
-            title={`${day.date}: ${day.count} hábito(s)`}
-            className={`
-              w-4 h-4 rounded border
-              ${day.count === 0
-                ? "bg-gray-800 border-slate-700"
-                : day.count === 1
-                ? "bg-green-900 border-green-800"
-                : day.count === 2
-                ? "bg-green-700 border-green-600"
-                : "bg-green-500 border-green-400"}
-            `}
-          />
-        ))}
       </div>
     )
   }
@@ -169,77 +156,88 @@ export default function HabitsDashboard() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto py-8 px-4 grid gap-8 md:grid-cols-2">
+      <main className="py-8 px-4 flex flex-row gap-8 items-start">
         {/* Coluna Esquerda */}
-        <div className="flex flex-col gap-8 md:col-span-1">
-          <div className="bg-gray-900 rounded-xl shadow p-8 border border-slate-700">
-            <h2 className="text-lg font-semibold text-slate-100 mb-2">Selecionar Hábitos do Dia</h2>
-            <p className="text-slate-400 text-sm mb-4">
-              Escolha os hábitos cadastrados para um dia específico e salve no diário.
-            </p>
-            <div className="mb-4">
-              <label htmlFor="data" className="font-medium flex items-center gap-2 text-slate-200">
-                📅 Data
-              </label>
-              <input
-                id="data"
-                type="date"
-                value={inputDateValue}
-                onChange={onDateChange}
-                className="mt-1 p-2 rounded bg-gray-800 border border-slate-700 text-slate-100"
-              />
-              <div className="text-xs text-slate-400 mt-1">Formato salvo: {dataDdMmAaaa}</div>
+        <div className="bg-gray-900 rounded-xl shadow p-8 border border-slate-700 w-full max-w-xl flex-1">
+          <h2 className="text-lg font-semibold text-slate-100 mb-2">Selecionar Hábitos do Dia</h2>
+          <p className="text-slate-400 text-sm mb-4">
+            Escolha os hábitos cadastrados para um dia específico e salve no diário.
+          </p>
+          <div className="mb-4">
+            <label htmlFor="data" className="font-medium flex items-center gap-2 text-slate-200">
+              📅 Data
+            </label>
+            <input
+              id="data"
+              type="date"
+              value={inputDateValue}
+              onChange={onDateChange}
+              className="mt-1 p-2 rounded bg-gray-800 border border-slate-700 text-slate-100"
+            />
+            <div className="text-xs text-slate-400 mt-1">Formato salvo: {dataDdMmAaaa}</div>
+          </div>
+          <hr className="my-4 border-slate-700" />
+          <div>
+            <div className="font-medium text-slate-200 mb-2">Hábitos cadastrados</div>
+            <div className="flex flex-col gap-2">
+              {habitos.length === 0 && (
+                <div className="text-slate-400 text-sm">
+                  Nenhum hábito cadastrado ainda. Adicione um acima.
+                </div>
+              )}
+              {habitos
+                .filter((h) => !h.is_deleted)
+                .map((h) => (
+                  <label key={h.id} className="flex items-center gap-2 text-slate-100">
+                    <input
+                      type="checkbox"
+                      checked={!!selecionados[h.id]}
+                      onChange={(e) => toggleSelecionado(h.id, e.target.checked)}
+                      className="accent-green-600"
+                    />
+                    <div>
+                      <div className="font-medium">{h.nome}</div>
+                      {h.descricao && (
+                        <div className="text-xs text-slate-400">{h.descricao}</div>
+                      )}
+                    </div>
+                  </label>
+                ))}
             </div>
-            <hr className="my-4 border-slate-700" />
-            <div>
-              <div className="font-medium text-slate-200 mb-2">Hábitos cadastrados</div>
-              <div className="flex flex-col gap-2">
-                {habitos.length === 0 && (
-                  <div className="text-slate-400 text-sm">
-                    Nenhum hábito cadastrado ainda. Adicione um acima.
-                  </div>
-                )}
-                {habitos
-                  .filter((h) => !h.is_deleted)
-                  .map((h) => (
-                    <label key={h.id} className="flex items-center gap-2 text-slate-100">
-                      <input
-                        type="checkbox"
-                        checked={!!selecionados[h.id]}
-                        onChange={(e) => toggleSelecionado(h.id, e.target.checked)}
-                        className="accent-green-600"
-                      />
-                      <div>
-                        <div className="font-medium">{h.nome}</div>
-                        {h.descricao && (
-                          <div className="text-xs text-slate-400">{h.descricao}</div>
-                        )}
-                      </div>
-                    </label>
-                  ))}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 mt-6">
-              <button
-                onClick={handleSaveDiario}
-                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded transition"
-              >
-                Salvar no Diário
-              </button>
-              <span className="text-xs text-slate-400">✔ Os selecionados serão marcados como feitos</span>
-            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-6">
+            <button
+              onClick={handleSaveDiario}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded transition"
+            >
+              Salvar no Diário
+            </button>
+            <span className="text-xs text-slate-400">✔ Os selecionados serão marcados como feitos</span>
           </div>
         </div>
 
         {/* Coluna Direita */}
-      <div className="flex flex-col gap-8 md:col-span-2">
-        <div className="bg-gray-900 rounded-xl shadow p-8 border border-slate-700">
-          <h2 className="text-lg font-semibold mb-2 text-slate-100">Histórico (Últimos 30 dias)</h2>
-          <p className="text-slate-400 text-sm mb-4">
-            Cada quadrado representa um dia. Quanto mais escuro, mais hábitos concluídos naquele dia.
-          </p>
-          <Heatmap countsByDate={countsByDate} />
+        <div className="bg-gray-900 rounded-xl shadow p-8 border border-slate-700 w-full max-w-xl flex-1">
+          <h2 className="text-lg font-semibold mb-2 text-slate-100">Histórico (Periodo de 1 ano)</h2>
+            <p className="text-slate-400 text-sm mb-4">
+              Cada quadrado representa um dia. Quanto mais escuro, mais hábitos concluídos naquele dia.
+            </p>
+            <div className="flex flex-col gap-2">
+            <div className="flex gap-2 mb-2">
+              {anosDisponiveis.map(ano => (
+                <button
+                  key={ano}
+                  onClick={() => setSelectedYear(ano)}
+                  className={`px-3 py-1 rounded ${ano === selectedYear ? "bg-blue-600 text-white" : "bg-gray-800 text-slate-300"}`}
+                >
+                  {ano}
+                </button>
+              ))}
+            </div>  
+            <Heatmap countsByDate={countsByDateAno} year={selectedYear} />
+          </div>
           <div className="mt-4 flex items-center gap-2 text-xs text-slate-400">
+
             <span>Menos</span>
             <span className="w-4 h-4 rounded bg-gray-800 border border-slate-700 inline-block" />
             <span className="w-4 h-4 rounded bg-green-900 border border-green-800 inline-block" />
@@ -248,8 +246,9 @@ export default function HabitsDashboard() {
             <span>Mais</span>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
     </div>
   )
 }
+
+export default HabitsDashboard
