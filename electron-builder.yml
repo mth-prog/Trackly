@@ -1,4 +1,3 @@
-appId: com.electron.app
 productName: trackly
 directories:
   buildResources: build
@@ -33,11 +32,8 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: electronjs.org
   category: Utility
+  synopsis: ${description}
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
