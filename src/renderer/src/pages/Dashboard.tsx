@@ -41,6 +41,7 @@ function HabitsDashboard(): React.JSX.Element {
   const [habitos, setHabitos] = useState<Habito[]>([])
   const [registros, setRegistros] = useState<Registro[]>([])
   const [selecionados, setSelecionados] = useState<SelectionMap>({})
+  const [habitosJaFeitos, setHabitosJaFeitos] = useState<Set<number>>(new Set())
   const [dataDdMmAaaa, setDataDdMmAaaa] = useState<string>(formatDdMmAaaa(new Date()))
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [toastMsg, setToastMsg] = useState<string | null>(null)
@@ -56,6 +57,16 @@ function HabitsDashboard(): React.JSX.Element {
     }
     fetchData()
   }, [])
+
+  useEffect(() => {
+    const habitosFeitos = new Set<number>()
+    registros.forEach(registro => {
+      if (registro.data === dataDdMmAaaa && registro.is_feito) {
+        habitosFeitos.add(registro.id_habito)
+      }
+    })
+    setHabitosJaFeitos(habitosFeitos)
+  }, [registros, dataDdMmAaaa])
 
   // Atualiza registros após salvar
   async function reloadRegistros() {
@@ -83,7 +94,7 @@ function HabitsDashboard(): React.JSX.Element {
 
     // Salva cada hábito selecionado como feito para a data escolhida
     for (const id_habito of selecionadosIds) {
-      await window.api.criarRegistro(dataDdMmAaaa, id_habito, true)
+      await window.api.criarRegistro(dataDdMmAaaa, id_habito, 1)
     }
     setSelecionados({})
     setToastType("success")
@@ -94,7 +105,11 @@ function HabitsDashboard(): React.JSX.Element {
   function onDateChange(e: React.ChangeEvent<HTMLInputElement>) {
     const v = e.target.value // yyyy-mm-dd
     const date = parseFromInputDate(v)
-    if (date) setDataDdMmAaaa(formatDdMmAaaa(date))
+    if (date) {
+      setDataDdMmAaaa(formatDdMmAaaa(date))
+      // Limpar seleções ao mudar de data
+      setSelecionados({})
+    }
   }
 
   const inputDateValue = toInputDateValue(dataDdMmAaaa)
@@ -187,22 +202,36 @@ function HabitsDashboard(): React.JSX.Element {
               )}
               {habitos
                 .filter((h) => !h.is_deleted)
-                .map((h) => (
-                  <label key={h.id} className="flex items-center gap-2 text-slate-100">
-                    <input
-                      type="checkbox"
-                      checked={!!selecionados[h.id]}
-                      onChange={(e) => toggleSelecionado(h.id, e.target.checked)}
-                      className="accent-green-600"
-                    />
-                    <div>
-                      <div className="font-medium">{h.nome}</div>
-                      {h.descricao && (
-                        <div className="text-xs text-slate-400">{h.descricao}</div>
-                      )}
-                    </div>
-                  </label>
-                ))}
+                .map((h) => {
+                  const jaFeito = habitosJaFeitos.has(h.id)
+                  return (
+                    <label
+                      key={h.id}
+                      className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition ${
+                        jaFeito 
+                          ? 'bg-green-800/30 border-green-600 text-green-200' 
+                          : 'bg-gray-800 border-slate-700 text-slate-200 hover:bg-gray-700'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={!!selecionados[h.id]}
+                        disabled={jaFeito}
+                        onChange={(e) => toggleSelecionado(h.id, e.target.checked)}
+                        className="rounded"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium flex items-center gap-2">
+                          {h.nome}
+                          {jaFeito && <span className="text-xs text-green-400">✓ Concluído</span>}
+                        </div>
+                        {h.descricao && (
+                          <div className="text-xs text-slate-400 mt-1">{h.descricao}</div>
+                        )}
+                      </div>
+                    </label>
+                  )
+                })}
             </div>
           </div>
           <div className="flex items-center gap-2 mt-6">

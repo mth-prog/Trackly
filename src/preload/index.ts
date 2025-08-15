@@ -32,7 +32,7 @@ const api = {
 
 
   // Referente ao Diario. 
-  criarRegistro: (data: string, idHabito: number, isFeito = false) => {
+  criarRegistro: (data: string, idHabito: number, isFeito: number) => {
     return ipcRenderer.invoke('criarRegistro', data, idHabito, isFeito)
   },
 

@@ -22,7 +22,7 @@ ipcMain.handle('criarHabito', async (event, nome: string, descricao: string = ''
 
 // Listar hábitos (não deletados) 
 // TODO: colocar o filtro na listagem 
-ipcMain.handle("listarHabitos",  () => {
+ipcMain.handle("listarHabitos",  (event) => {
     return db.prepare('SELECT * FROM habito WHERE is_deleted = false').all();
 })
 
@@ -32,7 +32,7 @@ ipcMain.handle("buscarHabito", (_, nome: string) => {
 })
 
 // Atualizar um hábito
-ipcMain.handle("atualizarHabito", (_,
+ipcMain.handle("atualizarHabito", (event,
     nome:String, 
     descricao:String
 ) => {
@@ -41,7 +41,7 @@ ipcMain.handle("atualizarHabito", (_,
 })
 
 // Marcar hábito como deletado (soft delete)
-ipcMain.handle("deletarHabito", (_, 
+ipcMain.handle("deletarHabito", (event, 
     nome: String
 ) => {
     return db.prepare('UPDATE habito SET is_deleted = 1 WHERE nome = ?').run(nome)
@@ -49,13 +49,13 @@ ipcMain.handle("deletarHabito", (_,
 
 
 // Criar um registro no diário
-ipcMain.handle("criarRegistro", (data, idHabito, isFeito = false) => {
+ipcMain.handle("criarRegistro", (event, data, idHabito, isFeito = 0) => {
     const stmt = db.prepare('INSERT INTO diario (data, id_habito, is_feito) VALUES (?, ?, ?)');
     return stmt.run(data, idHabito, isFeito);
 })
 
 // Listar registros do diário
-ipcMain.handle("listarRegistros", () => {
+ipcMain.handle("listarRegistros", (event) => {
     return db.prepare(`
         SELECT d.*, h.nome AS nome_habito 
         FROM diario d 
@@ -65,11 +65,11 @@ ipcMain.handle("listarRegistros", () => {
 })
 
 // Atualizar um registro do diário
-ipcMain.handle("atualizarRegistro", (id, isFeito) => {
+ipcMain.handle("atualizarRegistro", (event, id, isFeito) => {
     return db.prepare('UPDATE diario SET is_feito = ? WHERE id = ?').run(isFeito ? 1 : 0, id);
 })
 
 // Deletar um registro do diário
-ipcMain.handle("deletarRegistro", (id) => {
+ipcMain.handle("deletarRegistro", (event, id) => {
     return db.prepare('DELETE FROM diario WHERE id = ?').run(id);
 })
