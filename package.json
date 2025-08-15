@@ -1,6 +1,6 @@
 {
   "name": "trackly",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Sistema para gerenciamento de habitos",
   "main": "./out/main/index.js",
   "scripts": {
