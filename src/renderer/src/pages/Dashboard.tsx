@@ -74,6 +74,34 @@ function HabitsDashboard(): React.JSX.Element {
     setRegistros(registros)
   }
 
+  // Atualiza hábitos após deletar
+  async function reloadHabitos() {
+    const habitos = await window.api.listarHabito()
+    setHabitos(habitos)
+  }
+
+  async function handleDeletarHabito(nome: string) {
+    try {
+      await window.api.deletarHabito(nome)
+      setToastType("success")
+      setToastMsg("Hábito deletado com sucesso!")
+      reloadHabitos()
+      // Limpar seleções se o hábito deletado estava selecionado
+      setSelecionados(prev => {
+        const habitoDeletado = habitos.find(h => h.nome === nome)
+        if (habitoDeletado && prev[habitoDeletado.id]) {
+          const { [habitoDeletado.id]: _, ...rest } = prev
+          return rest
+        }
+        return prev
+      })
+    } catch (error) {
+      setToastType("error")
+      setToastMsg("Erro ao deletar hábito")
+      console.error("Erro ao deletar hábito:", error)
+    }
+  }
+
   function toggleSelecionado(id: number, checked: boolean | string) {
     setSelecionados((prev) => ({
       ...prev,
@@ -205,31 +233,47 @@ function HabitsDashboard(): React.JSX.Element {
                 .map((h) => {
                   const jaFeito = habitosJaFeitos.has(h.id)
                   return (
-                    <label
+                    <div
                       key={h.id}
-                      className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition ${
+                      className={`flex items-center gap-2 p-2 rounded border transition ${
                         jaFeito 
                           ? 'bg-green-800/30 border-green-600 text-green-200' 
-                          : 'bg-gray-800 border-slate-700 text-slate-200 hover:bg-gray-700'
+                          : 'bg-gray-800 border-slate-700 text-slate-200'
                       }`}
                     >
-                      <input
-                        type="checkbox"
-                        checked={!!selecionados[h.id]}
-                        disabled={jaFeito}
-                        onChange={(e) => toggleSelecionado(h.id, e.target.checked)}
-                        className="rounded"
-                      />
-                      <div className="flex-1">
-                        <div className="font-medium flex items-center gap-2">
-                          {h.nome}
-                          {jaFeito && <span className="text-xs text-green-400">✓ Concluído</span>}
+                      <label className="flex items-center gap-2 flex-1 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!selecionados[h.id]}
+                          disabled={jaFeito}
+                          onChange={(e) => toggleSelecionado(h.id, e.target.checked)}
+                          className="rounded"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium flex items-center gap-2">
+                            {h.nome}
+                            {jaFeito && <span className="text-xs text-green-400">✓ Concluído</span>}
+                          </div>
+                          {h.descricao && (
+                            <div className="text-xs text-slate-400 mt-1">{h.descricao}</div>
+                          )}
                         </div>
-                        {h.descricao && (
-                          <div className="text-xs text-slate-400 mt-1">{h.descricao}</div>
-                        )}
-                      </div>
-                    </label>
+                      </label>
+                      <button
+                        onClick={() => handleDeletarHabito(h.nome)}
+                        className="p-1 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded transition-colors"
+                        title="Deletar hábito"
+                      >
+                        <svg 
+                          width="16" 
+                          height="16" 
+                          fill="currentColor" 
+                          viewBox="0 0 16 16"
+                        >
+                          <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                        </svg>
+                      </button>
+                    </div>
                   )
                 })}
             </div>
